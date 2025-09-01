@@ -25,7 +25,7 @@ func main() {
 
 	numWorkers, err = strconv.Atoi(os.Args[1])
 	if err != nil {
-		fmt.Printf("param: %v\n", err)
+		fmt.Printf("parameter: %v\n", err)
 	}
 
 	for i := range numWorkers {
