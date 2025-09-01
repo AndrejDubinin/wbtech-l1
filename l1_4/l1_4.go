@@ -6,13 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 )
 
-const shutdownTimeout = 2
+func worker(wg *sync.WaitGroup, i int, in <-chan int) {
+	defer wg.Done()
 
-func worker(i int, in <-chan int) {
 	for num := range in {
 		fmt.Printf("%d worker: %d\n", i, num)
 	}
@@ -44,6 +45,7 @@ func producer(ctx context.Context) <-chan int {
 func main() {
 	var numWorkers int
 	var err error
+	wg := &sync.WaitGroup{}
 
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: go run main.go <num_workers>")
@@ -59,20 +61,19 @@ func main() {
 	ch := producer(ctx)
 
 	for i := range numWorkers {
-		go worker(i, ch)
+		wg.Add(1)
+		go worker(wg, i, ch)
 	}
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	fmt.Println("Shutdown ...")
-	cancel()
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		fmt.Println("Shutdown ...")
+		cancel()
+	}()
 
-	ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
-	defer cancelTimeout()
+	wg.Wait()
 
-	<-ctxTimeout.Done()
-
-	fmt.Printf("timeout of %d seconds.\n", shutdownTimeout)
 	fmt.Println("exiting")
 }
