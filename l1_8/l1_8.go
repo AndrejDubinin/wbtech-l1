@@ -23,5 +23,5 @@ func main() {
 
 	x = x &^ 1
 
-	fmt.Printf("after byte shift: %b\n", x)
+	fmt.Printf("after clear bit: %b\n", x)
 }
