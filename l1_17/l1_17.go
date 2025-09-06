@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+const notFound = -1
+
 func search(arr []int, target int) int {
 	l, r := 0, len(arr)
 
@@ -19,7 +21,7 @@ func search(arr []int, target int) int {
 		return l
 	}
 
-	return -1
+	return notFound
 }
 
 func main() {
